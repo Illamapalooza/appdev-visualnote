@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1718706217980,
+      "tag": "0000_visualnote-migrations",
+      "breakpoints": true
+    }
+  ]
+}
