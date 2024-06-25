@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS "notes" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"topic" text NOT NULL,
 	"content" json NOT NULL,
-	"image_url" text NOT NULL,
+	"image_urls" json NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
