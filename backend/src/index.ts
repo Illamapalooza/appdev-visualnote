@@ -11,6 +11,7 @@ import { aiNoteRoute } from './app/aiNote/aiNote.controller';
 import { notes, users } from './schema';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { upload } from './utils/saveFile';
 
 dotenv.config();
 
@@ -28,6 +29,21 @@ const pool = new Pool({
 });
 
 const db = drizzle(pool);
+
+// interface Note {
+//  topic: string;
+//  description: string;
+//  key_concepts: string[];
+//  explanation: string;
+//  examples: string[];
+//  resources: resourceInterface[];
+//  exercises: string[];
+// }
+
+// export interface resourceInterface {
+//  url: string;
+//  title: string;
+// }
 
 const connectToDatabase = async () => {
  try {
@@ -50,68 +66,66 @@ const startServer = async () => {
 
  // APIS for the database
 
- app.use('/api/get-users', async (req, res) => {
-  try {
-   const allUsers = await db.select().from(users);
-   res.json(allUsers);
+ // app.use('/api/get-users', async (req, res) => {
+ //  try {
+ //   const allUsers = await db.select().from(users);
+ //   res.json(allUsers);
 
-   console.log(allUsers);
-  } catch (error) {
-   console.error('Error getting users', error);
-   res.status(500).json({ error: 'An error occurred' });
-  }
- });
+ //   console.log(allUsers);
+ //  } catch (error) {
+ //   console.error('Error getting users', error);
+ //   res.status(500).json({ error: 'An error occurred' });
+ //  }
+ // });
 
- app.use('/api/insert-users', async (req, res) => {
-  // Todo insert users
-  try {
-   const { name, email, password } = req.body;
+ // app.use('/api/insert-users', async (req, res) => {
+ //  // Todo insert users
+ //  try {
+ //   const { name, email, password } = req.body;
 
-   console.log(name, email, password);
+ //   console.log(name, email, password);
 
-   const insertUser = await db
-    .insert(users)
-    .values([{ name, email, password }]);
-   res.json(insertUser);
-  } catch (error) {
-   console.log('Error inserting user', error);
-  }
- });
- app.use('/api/get-user/:id', async (req, res) => {
-  // Todo get user by id
-  try {
-   const { id } = req.params;
-   const user = await db
-    .select()
-    .from(users)
-    .where(sql`${users.id} = ${id}`);
-   res.json(user);
-  } catch (error) {
-   console.log('Error getting user by id', error);
-  }
- });
+ //   const insertUser = await db
+ //    .insert(users)
+ //    .values([{ name, email, password }]);
+ //   res.json(insertUser);
+ //  } catch (error) {
+ //   console.log('Error inserting user', error);
+ //  }
+ // });
+ // app.use('/api/get-user/:id', async (req, res) => {
+ //  // Todo get user by id
+ //  try {
+ //   const { id } = req.params;
+ //   const user = await db
+ //    .select()
+ //    .from(users)
+ //    .where(sql`${users.id} = ${id}`);
+ //   res.json(user);
+ //  } catch (error) {
+ //   console.log('Error getting user by id', error);
+ //  }
+ // });
 
- app.use('/api/update-user/:id', async (req, res) => {
-  try {
-   const { id } = req.params;
+ // app.use('/api/update-user/:id', async (req, res) => {
+ //  try {
+ //   const { id } = req.params;
 
-   const { name, email, password } = req.body;
-   const user = await db
-    .update(users)
-    .set({ name, email, password })
-    .where(sql`${users.id} = ${id}`);
-   res.json(user);
-  } catch (error) {
-   console.log('Error updating user', error);
-  }
- });
+ //   const { name, email, password } = req.body;
+ //   const user = await db
+ //    .update(users)
+ //    .set({ name, email, password })
+ //    .where(sql`${users.id} = ${id}`);
+ //   res.json(user);
+ //  } catch (error) {
+ //   console.log('Error updating user', error);
+ //  }
+ // });
 
  app.use('/api/get-notes', async (req, res) => {
   try {
    const allNotes = await db.select().from(notes);
    res.json(allNotes);
-
-   console.log(allNotes);
   } catch (error) {
    console.error('Error updating user', error);
    res.status(500).json({ error: 'An error occurred' });
@@ -119,35 +133,91 @@ const startServer = async () => {
   // Todo get notes
  });
 
- app.use('/api/insert-notes', async (req, res) => {
+ app.use('/api/insert-note', upload, async (req, res) => {
   try {
-   const { topic, image_url, content } = req.body;
+   const { data } = req.body;
+   const files = req.files;
 
-   console.log(topic, image_url, content);
+   if (!files) {
+    throw new Error('No files provided');
+   }
+
+   const parsedData = JSON.parse(JSON.parse(data));
+
+   const {
+    topic,
+    description,
+    key_concepts,
+    explanation,
+    examples,
+    resources,
+    exercises,
+   } = parsedData;
+
+   console.log('Topic:', topic);
+   const content = {
+    description,
+    key_concepts,
+    explanation,
+    examples,
+    resources,
+    exercises,
+   };
+
+   let image_urls: string[] = [];
+   if (Array.isArray(files)) {
+    image_urls = files.map((file: Express.Multer.File) => file.path);
+   }
 
    const insertNote = await db
     .insert(notes)
-    .values([{ topic, image_url, content }]);
+    .values([{ topic, image_urls, content }]);
+
+   console.log(insertNote);
+
    res.json(insertNote);
 
-   console.error(insertNote);
+   // }
   } catch (error) {
    console.log('Error inserting note', error);
   }
   // Todo insert notes
  });
 
- app.use('/api/update-note/:id', async (req, res) => {
+ app.use('/api/edit-note/:id', async (req, res) => {
   try {
    const { id } = req.params;
-   const { topic, image_url, content } = req.body;
+   const {
+    title,
+    key_concepts,
+    description,
+    explanation,
+    examples,
+    resources,
+    exercises,
+   } = req.body;
+
    const updateNote = await db
     .update(notes)
-    .set({ topic, image_url, content })
+    .set({
+     topic: title,
+     content: {
+      key_concepts,
+      description,
+      explanation,
+      examples,
+      resources,
+      exercises,
+     },
+    })
     .where(sql`${notes.id} = ${id}`);
-   res.json(updateNote);
+
+   res.status(200).json(updateNote);
   } catch (error) {
    console.log('Error updating note', error);
+   res
+    .status(500)
+    .json({ error: 'An error occurred while updating the note.' });
   }
  });
 
@@ -155,24 +225,33 @@ const startServer = async () => {
   // Todo delete notes
   try {
    const { id } = req.params;
-   const deleteNote = await db.delete(notes).where(sql`${notes.id} = ${id}`);
+   if (!id) {
+    return res.status(400).json({ error: 'ID parameter is required' });
+   }
 
+   const ID = parseInt(id, 10);
+   if (isNaN(ID)) {
+    return res.status(400).json({ error: 'Invalid ID parameter' });
+   }
+
+   const deleteNote = await db.delete(notes).where(sql`${notes.id} = ${ID}`);
    res.json(deleteNote);
   } catch (error) {
    console.log('Error deleting note', error);
+   res.status(500).json({ error: 'An error occurred' });
   }
  });
 
- app.use('/api/delete-user/:id', async (req, res) => {
-  // Todo delete user
-  try {
-   const { id } = req.params;
-   const deleteUsers = await db.delete(users).where(sql`${users.id} = ${id}`);
-   res.json(deleteUsers);
-  } catch (error) {
-   console.log('Error deleting user', error);
-  }
- });
+ // app.use('/api/delete-user/:id', async (req, res) => {
+ //  // Todo delete user
+ //  try {
+ //   const { id } = req.params;
+ //   const deleteUsers = await db.delete(users).where(sql`${users.id} = ${id}`);
+ //   res.json(deleteUsers);
+ //  } catch (error) {
+ //   console.log('Error deleting user', error);
+ //  }
+ // });
 
  app.listen(port, host, () => {
   console.log(`[ ready ] http://${host}:${port}`);

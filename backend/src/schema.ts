@@ -20,7 +20,7 @@ export const notes = pgTable('notes', {
  id: serial('id').primaryKey(),
  topic: text('topic').notNull(),
  content: json('content').notNull(),
- image_url: text('image_url').notNull(),
+ image_urls: json('image_urls').notNull(),
  created_at: timestamp('created_at').notNull().defaultNow(),
  // user_id: integer('user_id')
  //   .notNull()
