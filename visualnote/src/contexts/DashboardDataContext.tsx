@@ -52,7 +52,6 @@ export const DashboardDataProvider: React.FC<DashboardDataProviderProps> = ({
   //     setData(res.data);
   //   };
   // }, []);
-  console.log('this is the data');
  } catch (error) {
   console.log(error);
  }
