@@ -225,15 +225,7 @@ function FileDropZone(props: Props): JSX.Element {
              <div className="w-full">
               <div className="text-secondary-black flex justify-between items-center">
                <p className="text-secondary-black text-base">{image.name}</p>
-               <Button variant="secondary" size="sm" className="p-2">
-                <RxCross2 className="w-5 h-5" />
-               </Button>
               </div>
-              <p className="text-sm">Uploading...</p>
-              <Progress
-               className="h-2 w-full border-secondary-black border rounded-md"
-               value={50}
-              />
              </div>
             </div>
            </div>

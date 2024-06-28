@@ -134,15 +134,6 @@ function NotesCatalog(props: Props): JSX.Element {
         </DialogDescription>
        </DialogHeader>
        <div className="flex space-x-2 space-y-2">
-        <div className="flex flex-wrap gap-2">
-         {note.image_urls.map((url, index) => (
-          <img
-           src={`../../../../../backend/${url}`}
-           className="w-32 h-32 object-cover"
-           key={index}
-          />
-         ))}
-        </div>
         <div className="space-y-4">
          <div>
           <div className="font-bold text-lg">Description</div>
